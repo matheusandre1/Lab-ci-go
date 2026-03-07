@@ -1,23 +1,48 @@
 services:
   postgres:
-    image: "postgres"
+    image: postgres:16.3-alpine
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=root
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:?defina POSTGRES_DB no .env}
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   app:
-    image: golang:1.22
-    command:
-      - go
-      - run
-      - main.go
-    volumes:
-      - ./:/app
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_PORT: ${APP_PORT:-8080}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      DB_NAME: ${POSTGRES_DB:?defina POSTGRES_DB no .env}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
     ports:
-      - 8080:8080
+      - "${APP_PORT:-8080}:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 
+	"github.com/matheusandre1/Lab-ci-go/config"
 	"github.com/matheusandre1/Lab-ci-go/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,11 +15,17 @@ var (
 )
 
 func ConectaComBancoDeDados() {
-	stringDeConexao := "host=postgres user=root password=root dbname=root port=5432 sslmode=disable"
-	DB, err = gorm.Open(postgres.Open(stringDeConexao))
-	if err != nil {
-		log.Panic("Erro ao conectar com banco de dados")
+	stringDeConexao, configErr := config.BuildPostgresDSN()
+	if configErr != nil {
+		log.Panicf("Configuracao de ambiente invalida: %v", configErr)
 	}
 
-	DB.AutoMigrate(&models.Aluno{})
+	DB, err = gorm.Open(postgres.Open(stringDeConexao))
+	if err != nil {
+		log.Panicf("Erro ao conectar com banco de dados: %v", err)
+	}
+
+	if err = DB.AutoMigrate(&models.Aluno{}); err != nil {
+		log.Panicf("Erro ao migrar tabela: %v", err)
+	}
 }

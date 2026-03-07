@@ -1,7 +1,10 @@
 package routes
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
+	"github.com/matheusandre1/Lab-ci-go/config"
 	"github.com/matheusandre1/Lab-ci-go/controllers"
 )
 
@@ -19,5 +22,7 @@ func HandleRequest() {
 	r.GET("/alunos/", controllers.BuscaAlunoPorCPF)
 	r.GET("/index", controllers.ExibePaginaIndex)
 	r.NoRoute(controllers.RotaNaoEncontrada)
-	r.Run()
+	if err := r.Run(":" + config.GetAppPort()); err != nil {
+		log.Panicf("Erro ao iniciar servidor: %v", err)
+	}
 }

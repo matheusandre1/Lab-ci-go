@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -43,7 +43,8 @@ func TestVerificaStatusCodeDaSaudacaoComParametro(t *testing.T) {
 	r.ServeHTTP(resposta, req)
 	assert.Equal(t, http.StatusOK, resposta.Code, "Deveriam ser iguais")
 	mockDaResposta := `{"API diz":"E ai gui, Tudo beleza?"}`
-	respostaBody, _ := ioutil.ReadAll(resposta.Body)
+	respostaBody, err := io.ReadAll(resposta.Body)
+	assert.NoError(t, err)
 	assert.Equal(t, mockDaResposta, string(respostaBody))
 }
 
@@ -82,7 +83,8 @@ func TestBuscaAlunoPorIDHandler(t *testing.T) {
 	resposta := httptest.NewRecorder()
 	r.ServeHTTP(resposta, req)
 	var alunoMock models.Aluno
-	json.Unmarshal(resposta.Body.Bytes(), &alunoMock)
+	err := json.Unmarshal(resposta.Body.Bytes(), &alunoMock)
+	assert.NoError(t, err)
 	assert.Equal(t, "Nome do Aluno Teste", alunoMock.Nome, "Os nomes devem ser iguais")
 	assert.Equal(t, "12345678901", alunoMock.CPF)
 	assert.Equal(t, "123456789", alunoMock.RG)
@@ -114,7 +116,8 @@ func TestEditaUmAlunoHandler(t *testing.T) {
 	resposta := httptest.NewRecorder()
 	r.ServeHTTP(resposta, req)
 	var alunoMockAtualizado models.Aluno
-	json.Unmarshal(resposta.Body.Bytes(), &alunoMockAtualizado)
+	err := json.Unmarshal(resposta.Body.Bytes(), &alunoMockAtualizado)
+	assert.NoError(t, err)
 	assert.Equal(t, "47123456789", alunoMockAtualizado.CPF)
 	assert.Equal(t, "123456700", alunoMockAtualizado.RG)
 	assert.Equal(t, "Nome do Aluno Teste", alunoMockAtualizado.Nome)
