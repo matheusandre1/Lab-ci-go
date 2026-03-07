@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/matheusandre1/Lab-ci-go/config"
 	"github.com/matheusandre1/Lab-ci-go/controllers"
 )
 
@@ -19,5 +20,5 @@ func HandleRequest() {
 	r.GET("/alunos/", controllers.BuscaAlunoPorCPF)
 	r.GET("/index", controllers.ExibePaginaIndex)
 	r.NoRoute(controllers.RotaNaoEncontrada)
-	r.Run()
+	r.Run(":" + config.GetAppPort())
 }
