@@ -25,5 +25,7 @@ func ConectaComBancoDeDados() {
 		log.Panicf("Erro ao conectar com banco de dados: %v", err)
 	}
 
-	DB.AutoMigrate(&models.Aluno{})
+	if err = DB.AutoMigrate(&models.Aluno{}); err != nil {
+		log.Panicf("Erro ao migrar tabela: %v", err)
+	}
 }
